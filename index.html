@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Graph canvas</title>
+  <!-- <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="./index.js"></script>
+  <link href="https://unpkg.com/vis-network@9.1.2/styles/vis-network.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="./index.css" rel="stylesheet" />
+</head>
+<body>
+  <input type="file" id="loadDOT" accept=".dot,.DOT" style="display: none;">
+  <div class="container-fluid mt-3">
+    <div class="row">
+      
+      <!-- Toolbar (left column) -->
+      <div class="col-auto" id="toolbar">
+        <div class="btn-toolbar flex-column" role="toolbar">
+          <div class="btn-group-vertical mb-2" role="toolbar">
+            <button id="open" class="btn btn-primary">
+              <i class="fas fa-folder-open"></i>
+            </button>
+            <button id="save" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+            </button>
+          </div>
+
+          <div id="mode" class="btn-group-vertical mb-2" role="group">
+            <input type="radio" class="btn-check" name="mode" value="drag" id="drag" autocomplete="off" checked>
+            <label class="btn btn-outline-danger" for="drag">
+              <i class="fas fa-arrow-pointer"></i>
+            </label>
+            <input type="radio" class="btn-check" name="mode" value="addNode" id="addNode" autocomplete="off">
+            <label class="btn btn-outline-danger" for="addNode">
+              <i class="fas fa-circle"></i>
+            </label>
+            <input type="radio" class="btn-check" name="mode" value="addEdge" id="addEdge" autocomplete="off">
+            <label class="btn btn-outline-danger" for="addEdge"><b>―</b></label>
+            <input type="radio" class="btn-check" name="mode" value="addDEdge" id="addDEdge" autocomplete="off">
+            <label class="btn btn-outline-danger" for="addDEdge"><b>→</b></label>
+          </div>
+
+          <div class="btn-group-vertical mb-2" role="group">
+            <button id="showProperties" class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#properties" aria-controls="properties">
+              <i class="bi bi-list-task"></i>
+            </button>
+          </div>
+
+          <div class="btn-group-vertical mb-2" role="grid">
+            <button id="delete" class="btn btn-primary" disabled>
+              <i class="fas fa-times-circle"></i>
+            </button>
+            <button id="clear" class="btn btn-primary">
+              <i class="fas fa-eraser"></i>
+            </button>
+          </div>
+
+          <div class="btn-group-vertical mb-2" role="group">
+            <button id="fit" class="btn btn-primary">
+              <i class="fas fa-expand"></i>
+            </button>
+          </div>
+
+          <div class="btn-group-vertical mb-2" role="group">
+            <button id="generateGraph" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generateOptions ">
+              G
+            </button>
+
+            <button id="searchGraph" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#searchOptions" disabled>
+              S
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Graph Canvas (middle column) -->
+      <div class="col">
+        <div id="graphCanvas" style="width: 100%; height: 100vh; border: 1px solid #ccc;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Property Panel (right column) -->
+  <div id="properties" class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" aria-labelledby="offcanvasScrollingLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Properties</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body accordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button id="nodePropertiesTrigger" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#nodeProperties" aria-expanded="true" aria-controls="nodeProperties">
+            Node
+          </button>
+        </h2>
+        <div id="nodeProperties" class="accordion-collapse collapse show">
+          <div class="accordion-body">
+            <div class="row mb-3 align-items-center">
+              <label for="nodeBackgroundColor" class="col mb-0 form-label">Background Color</label>
+              <div class="col-6">
+                <input type="color" class="form-control-color" id="nodeBackgroundColor" title="Choose Background Color">
+              </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+              <label for="nodeBorderColor" class="col-6 mb-0 form-label">Border Color</label>
+              <div class="col-6">
+                <input type="color" class="form-control-color" id="nodeBorderColor" title="Choose Border Color">
+              </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+              <label for="nodeFontColor" class="col-6 mb-0 form-label">Font Color</label>
+              <div class="col-6">
+                <input type="color" class="form-control-color" id="nodeFontColor" title="Choose Font Color">
+              </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+              <label for="nodeShape" class="col-6 mb-0 form-label">Shape</label>
+              <div class="col-6">
+                <select id="nodeShape" class="form-select mx-auto">
+                  <option value="ellipse">Ellipse</option>
+                  <option value="circle">Circle</option>
+                  <option value="database">Database</option>
+                  <option value="box">Box</option>
+                  <option value="text">Text</option>
+                  <option value="diamond">Diamond</option>
+                  <option value="dot" selected>Dot</option>
+                  <option value="star">Star</option>
+                  <option value="triangle">Triangle</option>
+                  <option value="triangleDown">Triangle Down</option>
+                  <option value="hexagon">Hexagon</option>
+                  <option value="square">Square</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+              <label for="nodeLabel" class="col-6 mb-0 form-label">Label</label>
+              <div class="col-6">
+                <input id="nodeLabel" class="form-control" type="text">
+              </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+              <label for="nodeSize" class="col-6 mb-0 form-label">Size</label>
+              <div class="col-6">
+                <input type="number" class="form-control" id="nodeSize" min="0">
+              </div>
+            </div> 
+          </div>
+        </div> 
+      </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button id="edgePropertiesTrigger" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#edgeProperties" aria-expanded="true" aria-controls="nodeProperties">
+            Edge
+          </button>
+        </h2>
+        <div id="edgeProperties" class="accordion-collapse collapse show">
+          <div class="accordion-body">
+            <div class="row mb-3 align-items-center">
+              <label for="edgeColor" class="col-6 mb-0 form-label">Color</label>
+              <div class="col-6">
+                <input type="color" class="form-control-color" id="edgeColor" title="Choose Edge Color">
+              </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+              <label for="edgeFontColor" class="col-6 mb-0 form-label">Font Color</label>
+              <div class="col-6">
+                <input type="color" class="form-control-color" id="edgeFontColor" title="Choose Font Color">
+              </div>
+            </div>
+        
+            <div class="row mb-3 align-items-center">
+              <label for="edgeLabel" class="col-6 mb-0 form-label">Label</label>
+              <div class="col-6">
+                <input id="edgeLabel" class="form-control" type="text">
+              </div>
+            </div>
+        
+            <div class="row mb-3 align-items-center">
+              <label for="directedEdge" class="col-6 mb-0 form-label">Directed</label>
+              <div class="col-6">
+                <input type="checkbox" class="form-check-input" id="directedEdge">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="generateOptions" tabindex="-1" aria-labelledby="generateOptions">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Options for Graph Generation</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body col">
+
+          <div class="row mb-3 align-items-center">
+            <label for="graphType" class="col-6 mb-0 form-label">Type</label>
+            <div class="col-6">
+              <select id="graphType" class="form-select mx-auto">
+                <option value="fullyConnected">Fully Connected</option>
+                <option value="cycle">Cycle</option>
+                <option value="path">Path</option>
+                <option value="binaryTree">Binary Tree</option>
+                <option value="erdosRenyi">Erdos Renyi</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3 align-items-center">
+            <label for="nodeNumber" class="col-6 mb-0 form-label">Number of nodes</label>
+            <div class="col-6">
+              <input type="number" class="form-control" id="nodeNumber" min="1" value="1">
+            </div>
+          </div>
+          
+          <div class="row mb-3 align-items-center">
+            <label for="probability" class="col-6 mb-0 form-label">Probability</label>
+            <div class="col-6">
+              <input type="number" step="0.01" class="form-control" id="probability" min="0" max="1" value="0.5" disabled>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button id="generate" type="button" class="btn btn-primary" data-bs-dismiss="modal">Generate</button>
+          <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="searchOptions" tabindex="-1" aria-labelledby="searchOptions">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Options for Graph Search</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body col">
+
+          <div class="row mb-3 align-items-center">
+            <label for="searchAlgorithm" class="col-6 mb-0 form-label">Algorithm</label>
+            <div class="col-6">
+              <select id="searchAlgorithm" class="form-select mx-auto">
+                <option value="DFS">DFS</option>
+                <option value="BFS">BFS</option>
+                <option value="Dijkstra">Dijkstra</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-target="#search" data-bs-toggle="modal">Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="search" tabindex="-1" aria-labelledby="search">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Search the Graph</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body col">
+          <div id="subNetwork" style="width: 100%; height: 50vh; border: 1px solid #ccc;"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="nextSearch" type="button" class="btn btn-primary">Next</button>
+          <!-- <button id="resetSearch" type="button" class="btn btn-secondary">Reset</button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
