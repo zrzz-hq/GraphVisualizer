@@ -107,18 +107,23 @@ document.getElementById('graphCanvas').addEventListener('select', (e) => {
     document.getElementById('searchGraph').disabled = (e.detail.nodes.length > 2 || e.detail.nodes.length === 0);
 });
 
-const loadDOT = document.getElementById("loadDOT");
-loadDOT.onchange = (e) => {
-    for(const file of e.target.files)
-    {
-        file.arrayBuffer().then(function(arrayBuffer) {
-            const dotString = new TextDecoder().decode(arrayBuffer);
-            visNetwork.load(dotString)
-        });
-    };
-}
-
 document.getElementById('open').addEventListener('click', () => {
+    const loadDOT = document.createElement('input');
+    loadDOT.type = 'file';
+    loadDOT.id = 'loadDOT';
+    loadDOT.accept = '.dot,.DOT';
+    loadDOT.style.display = 'none';
+
+    loadDOT.onchange = (e) => {
+        for(const file of e.target.files)
+        {
+            file.arrayBuffer().then(function(arrayBuffer) {
+                const dotString = new TextDecoder().decode(arrayBuffer);
+                visNetwork.load(dotString)
+            });
+        };
+    }
+
     loadDOT.click();
 });
 
