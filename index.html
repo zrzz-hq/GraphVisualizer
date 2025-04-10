@@ -68,7 +68,7 @@
             G
           </button>
 
-          <button id="searchGraph" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#searchOptions" disabled>
+          <button id="searchGraph" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#search" disabled>
             S
           </button>
         </div>
@@ -240,39 +240,42 @@
     </div>
   </div>
 
-  <div class="modal fade" id="searchOptions" tabindex="-1" aria-labelledby="searchOptions">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5">Options for Graph Search</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body col">
-
-          <div class="row mb-3 align-items-center">
-            <label for="searchAlgorithm" class="col-6 mb-0 form-label">Algorithm</label>
-            <div class="col-6">
-              <select id="searchAlgorithm" class="form-select mx-auto">
-                <option value="DFS">DFS</option>
-                <option value="BFS">BFS</option>
-                <option value="Dijkstra">Dijkstra</option>
-              </select>
-            </div>
-          </div>
-
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-target="#search" data-bs-toggle="modal">Start</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="modal fade" id="search" tabindex="-1" aria-labelledby="search">
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5">Search the Graph</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body d-flex align-items-stretch">
+          <div id="searchCanvas" class="border flex-grow-1 me-3"></div>
+          <div>
+            <table id="searchCache" class="table table-bordered table-sm text-center">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <div class="d-flex">
+            <select id="searchAlgorithm" class="form-select w-auto me-3">
+              <option value="DFS">DFS</option>
+              <option value="BFS">BFS</option>
+              <option value="Dijkstras">Dijkstra's</option>
+            </select>
+            <button id="startSearch" type="button" class="btn btn-primary">Start</button>
+          </div>
+          <button id="nextSearch" type="button" class="btn btn-primary" disabled>Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- <div class="modal fade" id="creatMST" tabindex="-1" aria-labelledby="search">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Create MST</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body d-flex align-items-stretch">
@@ -286,11 +289,10 @@
         </div>
         <div class="modal-footer">
           <button id="nextSearch" type="button" class="btn btn-primary">Next</button>
-          <!-- <button id="resetSearch" type="button" class="btn btn-secondary">Reset</button> -->
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
 </body>
 </html>

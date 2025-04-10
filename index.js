@@ -1,6 +1,6 @@
 import { VisNetwork, Nodes, Edges } from "./network.js";
 import { PropertyPanel } from "./propertyPanel.js"
-import { SubNetwork, SearchCache, BFS, DFS, Dijkstras } from "./search.js";
+import { SubNetwork, SearchCache, Search} from "./search.js";
 
 // Create nodes and edges
 
@@ -8,7 +8,7 @@ const nodes = new Nodes([]);
 const edges = new Edges([]);
 const visNetwork = new VisNetwork(document.getElementById('graphCanvas'), nodes, edges);
 const propertyPanel = new PropertyPanel();
-const searchPanel = new bootstrap.Modal('#subNetwork');
+// const searchPanel = new bootstrap.Modal('#subNetwork');
 
 document.getElementById('mode').addEventListener('change', (e) => {
     visNetwork.setMode(e.target.value);
@@ -151,36 +151,40 @@ document.getElementById('generate').addEventListener('click', () => {
     visNetwork.generate(type, nNodes, {probability});
 });
 
-const subCanvas = document.getElementById('subNetwork');
+const subCanvas = document.getElementById('searchCanvas');
 const nextSearch = document.getElementById('nextSearch');
+const startSearch = document.getElementById('startSearch');
 
 const onSearchShow = (e) => {
     const subNetwork = new SubNetwork(subCanvas, nodes, edges);
-    const searchCache = new SearchCache(document.getElementById('searchCache'));
-    const algorithm = document.getElementById("searchAlgorithm").value;
-    const selectedNodes = visNetwork.getSelectedNodes();
-    const search =  algorithm === 'DFS' ? new DFS(subNetwork, searchCache, selectedNodes[0], selectedNodes[1]) :
-                    algorithm === 'BFS' ? new BFS(subNetwork, searchCache, selectedNodes[0], selectedNodes[1]) :
-                    algorithm === 'Dijkstra' ? new Dijkstras(subNetwork, searchCache, selectedNodes[0], selectedNodes[1]) :
-                    null;
 
-    const onNextSearch = () => search.next();
-    const onSearchDone = () => nextSearch.innerHTML = 'Done';
-    const onTreeDone = () => nextSearch.disabled = true;
+    const searchCache = new SearchCache(document.getElementById('searchCache'));
+    const search = new Search(subNetwork, searchCache);
+
+    const onStartSearch = () => {
+        const searchAlgorithm = document.getElementById("searchAlgorithm");
+        const selectedNodes = visNetwork.getSelectedNodes();
+        search.start(selectedNodes[0], selectedNodes[1], searchAlgorithm.value);
+        nextSearch.disabled = false;
+    };
+
+    const onNextSearch = () => {
+        if(!search.next())
+        {
+            nextSearch.disabled = true;
+        }
+    };
 
     nextSearch.addEventListener('click', onNextSearch);
-    subCanvas.addEventListener('searchDone', onSearchDone);
-    subCanvas.addEventListener('treeDone', onTreeDone);
+    startSearch.addEventListener('click', onStartSearch);
     
-
     const onSearchHide = (e) => {
-        nextSearch.removeEventListener('click', onNextSearch);
-        subCanvas.removeEventListener('searchDone', onSearchDone);
-        subCanvas.removeEventListener('treeDone', onTreeDone);
-        nextSearch.disabled = false;
-        nextSearch.innerHTML = 'Next';
-        document.getElementById('search').removeEventListener('hidden.bs.model', onSearchHide);
         subNetwork.destroy();
+        searchCache.destroy();
+
+        document.getElementById('search').removeEventListener('hidden.bs.model', onSearchHide);
+        nextSearch.removeEventListener('click', onNextSearch);
+        startSearch.removeEventListener('click', onStartSearch);
     }
     
     document.getElementById('search').addEventListener('hidden.bs.modal', onSearchHide);
