@@ -1,6 +1,6 @@
 import { VisNetwork, Nodes, Edges } from "./network.js";
 import { PropertyPanel } from "./propertyPanel.js"
-import { SubNetwork, SearchCache, Search} from "./search.js";
+import { SearchCache, Search, SearchNetwork} from "./search.js";
 
 // Create nodes and edges
 
@@ -156,10 +156,10 @@ const nextSearch = document.getElementById('nextSearch');
 const startSearch = document.getElementById('startSearch');
 
 const onSearchShow = (e) => {
-    const subNetwork = new SubNetwork(subCanvas, nodes, edges);
+    const searchNetwork = new SearchNetwork(subCanvas, nodes, edges);
 
     const searchCache = new SearchCache(document.getElementById('searchCache'));
-    const search = new Search(subNetwork, searchCache);
+    const search = new Search(searchNetwork, searchCache);
 
     const onStartSearch = () => {
         const searchAlgorithm = document.getElementById("searchAlgorithm");
@@ -179,7 +179,7 @@ const onSearchShow = (e) => {
     startSearch.addEventListener('click', onStartSearch);
     
     const onSearchHide = (e) => {
-        subNetwork.destroy();
+        searchNetwork.destroy();
         searchCache.destroy();
 
         document.getElementById('search').removeEventListener('hidden.bs.model', onSearchHide);

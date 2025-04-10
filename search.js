@@ -1,6 +1,6 @@
 import { VisNetwork, Nodes, Edges } from "./network.js";
 
-export class SubNetwork extends VisNetwork
+export class SearchNetwork extends VisNetwork
 {
     #edgeHistories
     #visited

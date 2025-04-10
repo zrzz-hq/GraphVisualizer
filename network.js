@@ -1,7 +1,6 @@
 import { Network, parseDOTNetwork } from 'https://cdn.jsdelivr.net/npm/vis-network@9.1.2/+esm';
 import { DataSet } from 'https://cdn.jsdelivr.net/npm/vis-data@7.1.4/+esm';
 
-
 class VisDataSet extends DataSet
 {
     #defaults
@@ -207,26 +206,48 @@ export class VisNetwork extends Network
 
     load(dotString)
     {
-        const parsedData = parseDOTNetwork(dotString);
-        this.nodes.update(parsedData.nodes);
-        this.edges.update(parsedData.edges);
+        // const parsedData = parseDOTNetwork(dotString);
+
+        const graph = graphlibDot.read(dotString); // 👈 Parse DOT
+
+        console.log(graph.nodes());
+        console.log(graph.edges());
+
+        const nodes = graph.nodes().map(nodeId => {
+            const props = graph.node(nodeId) || {};
+            return {
+              id: nodeId,
+              label: props.label || nodeId // fallback label
+            };
+        });
+
+        const edges = graph.edges().map(({ v, w }) => {
+            const props = graph.edge(v, w) || {};
+            return {
+                from: v,
+                to: w,
+                label: props.label
+            };
+        });
+
+        this.nodes.update(nodes);
+        this.edges.update(edges);
         this.redraw();
     }
 
     dump()
     {
-        let dotString = 'digraph G {\n'; // Use "graph G" if undirected
+        const graph = new graphlib.Graph({ directed: true });
 
         this.nodes.forEach(node => {
-            dotString += `  "${node.id}" [label="${node.label || node.id}"];\n`;
+            graph.setNode(node.id, {label: node.label});
         });
       
         this.edges.forEach(edge => {
-          const arrow = edge.arrows ? '->' : '--'; // directed or undirected
-          dotString += `  "${edge.from}" ${arrow} "${edge.to}";\n`;
+            graph.setEdge(edge.from, edge.to, {label: edge.label});
         });
-      
-        dotString += '}';
+
+        const dotString = graphlibDot.write(graph);
         return dotString;
     }
 
