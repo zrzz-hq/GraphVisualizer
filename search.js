@@ -85,11 +85,94 @@ export class SubNetwork extends VisNetwork
     }
 }
 
+export class SearchCache
+{
+    #container
+    #head
+    #body
+    #queue
+    constructor(container)
+    {
+        this.#container = container;
+        this.#head = this.#container.querySelector('thead');
+        this.#body = this.#container.querySelector('tbody');
+        this.#head.replaceChildren();
+        this.#body.replaceChildren();
+        this.#queue = [];
+    }
+
+    setHead(head)
+    {
+        const row = document.createElement('tr');
+        for (const title of head) 
+        {
+            const th = document.createElement('th');
+            th.scope = 'col';
+            th.textContent = title;
+            row.appendChild(th);
+        }
+        this.#head.replaceChildren(row);
+    }
+
+    refresh()
+    {
+        while(this.#queue.length > 0)
+        {
+            const op = this.#queue.shift();
+            op();
+        }
+    }
+
+    add(line) 
+    {
+        this.#queue.push(() => {
+            const tr = document.createElement('tr');
+    
+            for (const text of line) {
+                const td = document.createElement('td');
+                td.textContent = text;
+                tr.appendChild(td);
+            }
+    
+            this.#body.appendChild(tr);
+        });
+    }
+
+    update(i, line) 
+    {
+        this.#queue.push(() => {
+            const oldRow = this.#body.children[i];
+            if (!oldRow) return;
+    
+            const tr = document.createElement('tr');
+    
+            for (const text of line) {
+                const td = document.createElement('td');
+                td.textContent = text;
+                tr.appendChild(td);
+            }
+    
+            this.#body.replaceChild(tr, oldRow);
+        });
+    }    
+
+    removeFirst() 
+    {
+        this.#queue.push(() => this.#body.firstElementChild?.remove());
+    }
+    
+    removeLast() 
+    {
+        this.#queue.push(() => this.#body.lastElementChild?.remove());
+    }
+}
+
 export class Search
 {
-    constructor(network, start, end)
+    constructor(network, cache, start, end)
     {
         this.network = network;
+        this.cache = cache;
         this.network.mark(null, start, []);
 
         this.end = end;
@@ -102,6 +185,8 @@ export class Search
     {
         if(this.current === this.end)
             return;
+
+        this.cache.refresh();
         
         const [next, toVisit, frontiers] = this.nextStep(this.current);
         this.visited.add(toVisit);
@@ -114,9 +199,10 @@ export class DFS extends Search
 {
     #stack
 
-    constructor(nextwork, start, end)
+    constructor(nextwork, cache, start, end)
     {
-        super(nextwork, start, end);
+        super(nextwork, cache, start, end);
+        this.cache.setHead(['Stack']);
         this.#stack = [];
     }
 
@@ -130,12 +216,14 @@ export class DFS extends Search
         if (frontiers.length > 0) 
         {
             this.#stack.push(current);
+            this.cache.add([this.network.nodes.getProperties(current, ['label'])['label']]);
             toVisit = frontiers[0];
             next = toVisit;
         } 
         else
         {
             next = this.#stack.pop();
+            this.cache.removeLast();
         }
         
         return [next, toVisit, frontiers];
@@ -146,9 +234,10 @@ export class DFS extends Search
 export class BFS extends Search
 {
     #queue
-    constructor(nextwork, start, end)
+    constructor(nextwork, cache, start, end)
     {
-        super(nextwork, start, end);
+        super(nextwork, cache, start, end);
+        this.cache.setHead(['Queue']);
         this.#queue = [];
     }
 
@@ -163,11 +252,13 @@ export class BFS extends Search
         {
             toVisit = frontiers[0];
             this.#queue.push(toVisit);
+            this.cache.add([this.network.nodes.getProperties(toVisit, ['label'])['label']]);
             next = current;
         }
         else
         {
             next = this.#queue.shift();
+            this.cache.removeFirst();
         }
 
         return [next, toVisit, frontiers];
@@ -178,17 +269,29 @@ export class Dijkstras extends Search
 {
     #table
     #minDistance
-    constructor(network, start, end)
+    #map
+    constructor(network, cache, start, end)
     {
-        super(network, start, end);
+        super(network, cache, start, end);
+        this.cache.setHead(['node', 'distance', 'previous']);
         this.#table = {};
-        for(const node of Object.keys(this.adjacencyDict))
+        for(const [index, node] of Object.keys(this.adjacencyDict).entries())
         {
-            this.#table[node] = {distance: Infinity , prev: null};
+            const distance = index === 0 ? 0 : Infinity
+            this.#table[node] = {distance, prev: null, index};
+            this.cache.add(this.#createCacheLine(node, distance, null));
         }
 
-        this.#table[start].distance = 0;
         this.#minDistance = 0;
+    }
+
+    #createCacheLine(node, distance, prev) 
+    {
+        const first = this.network.nodes.getProperties(node, ['label'])['label'];
+        const second = distance === Infinity ? '∞' : distance;
+        const third = prev ?? '-';
+
+        return [first, second, third];
     }
 
     nextStep(current)
@@ -206,6 +309,7 @@ export class Dijkstras extends Search
             {
                 this.#table[frontier].distance = distance;
                 this.#table[frontier].prev = current;
+                this.cache.update(this.#table[frontier].index, this.#createCacheLine(frontier, distance, current));
             }
         }
 

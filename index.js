@@ -1,6 +1,6 @@
 import { VisNetwork, Nodes, Edges } from "./network.js";
 import { PropertyPanel } from "./propertyPanel.js"
-import { SubNetwork, BFS, DFS, Dijkstras } from "./search.js";
+import { SubNetwork, SearchCache, BFS, DFS, Dijkstras } from "./search.js";
 
 // Create nodes and edges
 
@@ -156,11 +156,12 @@ const nextSearch = document.getElementById('nextSearch');
 
 const onSearchShow = (e) => {
     const subNetwork = new SubNetwork(subCanvas, nodes, edges);
+    const searchCache = new SearchCache(document.getElementById('searchCache'));
     const algorithm = document.getElementById("searchAlgorithm").value;
     const selectedNodes = visNetwork.getSelectedNodes();
-    const search =  algorithm === 'DFS' ? new DFS(subNetwork, selectedNodes[0], selectedNodes[1]) :
-                    algorithm === 'BFS' ? new BFS(subNetwork, selectedNodes[0], selectedNodes[1]) :
-                    algorithm === 'Dijkstra' ? new Dijkstras(subNetwork, selectedNodes[0], selectedNodes[1]) :
+    const search =  algorithm === 'DFS' ? new DFS(subNetwork, searchCache, selectedNodes[0], selectedNodes[1]) :
+                    algorithm === 'BFS' ? new BFS(subNetwork, searchCache, selectedNodes[0], selectedNodes[1]) :
+                    algorithm === 'Dijkstra' ? new Dijkstras(subNetwork, searchCache, selectedNodes[0], selectedNodes[1]) :
                     null;
 
     const onNextSearch = () => search.next();
