@@ -62,8 +62,6 @@ export class SubNetwork extends VisNetwork
         if(!current)
             return;
 
-        console.log(this.nodes.get(current));
-
         const group = this.nodes.getProperties(current, ['group'])['group'];
         this.#last = {id: current, group};
 

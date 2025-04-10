@@ -179,6 +179,7 @@ const onSearchShow = (e) => {
         nextSearch.disabled = false;
         nextSearch.innerHTML = 'Next';
         document.getElementById('search').removeEventListener('hidden.bs.model', onSearchHide);
+        subNetwork.destroy();
     }
     
     document.getElementById('search').addEventListener('hidden.bs.modal', onSearchHide);
