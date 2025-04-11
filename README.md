@@ -1,7 +1,10 @@
-<h1 align="center">Graph Visualizer</h1>
+<p align="center">
+    <h3 align="center">Graph Visualizer</h1>
+<p>
 
 ## Introduction
 Graph Visualizer is a web application powered by vis.js that allows users to draw graphs and visualize how different graph search algorithms work in real time.
+Follow [this link](https://zrzz-hq.github.io/GraphVisualizer/) to try it now.
 
 ## Layout
 <p align="center">
