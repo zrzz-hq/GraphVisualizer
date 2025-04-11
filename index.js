@@ -1,7 +1,7 @@
 import { Greedy, Kruskal, MSTNetwork } from "./mst.js";
 import { VisNetwork, Nodes, Edges } from "./network.js";
 import { PropertyPanel } from "./propertyPanel.js"
-import { SearchCache, Search, SearchNetwork} from "./search.js";
+import { SearchCache, SearchNetwork, DFS, BFS, Dijkstras} from "./search.js";
 
 // Create nodes and edges
 
@@ -157,10 +157,10 @@ const onSearchShow = (e) => {
     const startSearch = document.getElementById('startSearch');
     const searchCanvas = document.getElementById('searchCanvas');
 
-    let started = false;
-    let searchNetwork = new SearchNetwork(searchCanvas, nodes, edges);
-    let searchCache = new SearchCache(document.getElementById('searchCache'));
-    let search = new Search(searchNetwork, searchCache);
+    let started = true;
+    let searchNetwork;
+    let searchCache;
+    let search;
 
     const onSelect = (e) => {
         nextSearch.disabled = (e.detail.nodes.length > 2 || e.detail.nodes.length === 0);
@@ -171,7 +171,6 @@ const onSearchShow = (e) => {
         {
             searchNetwork = new SearchNetwork(searchCanvas, nodes, edges);
             searchCache = new SearchCache(document.getElementById('searchCache'));
-            search = new Search(searchNetwork, searchCache);
             started = false;
         }
 
@@ -185,8 +184,10 @@ const onSearchShow = (e) => {
             started = true;
 
             const selectedNodes = searchNetwork.getSelectedNodes();
-            const searchAlgorithm = document.getElementById("searchAlgorithm");
-            search.start(selectedNodes[0], selectedNodes[1], searchAlgorithm.value);
+            const algorithm = document.getElementById("searchAlgorithm").value;
+            search = algorithm === 'DFS' ? new DFS(searchNetwork, searchCache, selectedNodes[0], selectedNodes[1]) :
+                     algorithm === 'BFS' ? new BFS(searchNetwork, searchCache, selectedNodes[0], selectedNodes[1]) :
+                     new Dijkstras(searchNetwork, searchCache, selectedNodes[0], selectedNodes[1]);
             searchCanvas.removeEventListener('select', onSelect);
         }
         else
@@ -241,10 +242,6 @@ const onMSTShow = (e) => {
         mst.next();
         nextMST.disabled = false;
     }
-
-    const onSelect = (e) => {
-
-    };
 
     nextMST.addEventListener('click', onNextMST);
     startMST.addEventListener('click', onStartMST);

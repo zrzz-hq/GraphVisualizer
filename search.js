@@ -175,158 +175,172 @@ export class SearchCache
     }
 }
 
-export class Search
+class Search
 {
-    #current
-    #end
-    #data
-    #adjacencyDict
-    #visited
-
-    #network
-    #cache
-
-    #nextStep
-    constructor(network, cache)
+    constructor(network, cache, start, end)
     {
-        this.#network = network;
-
-        this.#cache = cache;
-
-        this.#adjacencyDict = this.#network.getAdjacencyDict();
-    }
-
-    start(start, end, algorithm)
-    {
-        this.#current = start
-        this.#end = end;
-
-        switch(algorithm)
-        {
-            case 'DFS':
-                this.#data = [];
-                this.#nextStep = this.#nextDFS;
-                this.#cache.setHead(['Stack']);
-                break;
-            case 'BFS':
-                this.#data = [];
-                this.#nextStep = this.#nextBFS;
-                this.#cache.setHead(['Queue']);
-                break;
-            case 'Dijkstras':
-                this.#data = {minDistance: 0, table: {}};
-                for(const [index, node] of Object.keys(this.#adjacencyDict).entries())
-                {
-                    const distance = node === start ? 0 : Infinity
-                    this.#data.table[node] = {distance, prev: null, index};
-                    this.#cache.add(this.#createCacheLine(node, distance, null));
-                }
-                this.#nextStep = this.#nextDijkstras;
-                this.#cache.setHead(['Node', 'Distance', 'Previous']);
-                break;
-            default:
-                break;
-        }
-
-        this.#visited = new Set([start]);
-        this.#network.mark(null, start, []);
+        this._network = network;
+        this._cache = cache;
+        this._adjacencyDict = this._network.getAdjacencyDict();
+        this._visited = new Set([start]);
+        this._current = start;
+        this._end = end;
+        this._network.mark(null, start, []);
     }
 
     next()
     {
-        if(this.#current === this.#end)
+        if(this._current === this._end)
             return false;
 
-        this.#cache.refresh();
+        this._cache.refresh();
         
-        const neighbors = Object.keys(this.#adjacencyDict[this.#current]);
-        const frontiers = neighbors.filter(node => !this.#visited.has(node));
+        const neighbors = Object.keys(this._adjacencyDict[this._current]);
+        const frontiers = neighbors.filter(node => !this._visited.has(node));
 
-        const [next, toVisit] = this.#nextStep(this.#current, frontiers);
+        const [next, toVisit] = this._nextStep(this._current, frontiers);
 
-        this.#visited.add(toVisit);
-        this.#network.mark(this.#current, toVisit, frontiers);
-        this.#current = next;
+        this._visited.add(toVisit);
+        this._current = next;
         return true;
     }
-    
-    #nextDFS(current, frontiers)
+}
+
+export class DFS extends Search
+{
+    #stack
+    constructor(network, cache, start, end)
+    {
+        super(network, cache, start, end);
+        this.#stack = [];
+        this._cache.setHead(['Stack']);
+    }
+    _nextStep(current, frontiers)
     {
         let next;
         let toVisit = null;
         if (frontiers.length > 0) 
         {
-            this.#data.push(current);
-            this.#cache.add([this.#network.nodes.getProperties(current, ['label'])['label']]);
+            this.#stack.push(current);
+            this._cache.add([this._network.nodes.getProperties(current, ['label'])['label']]);
             toVisit = frontiers[0];
             next = toVisit;
         } 
         else
         {
-            next = this.#data.pop();
-            this.#cache.removeLast();
+            next = this.#stack.pop();
+            this._cache.removeLast();
         }
         
+        this._network.mark(current, toVisit, frontiers);
+
         return [next, toVisit];
     }
+}
 
-    #nextBFS(current, frontiers)
+export class BFS extends Search
+{
+    #queue
+    constructor(network, cache, start, end)
+    {
+        super(network, cache, start, end);
+        this.#queue = [];
+        this._cache.setHead(['Queue']);
+    }
+
+    _nextStep(current, frontiers)
     {
         let next;
         let toVisit = null;
         if(frontiers.length > 0)
         {
             toVisit = frontiers[0];
-            this.#data.push(toVisit);
-            this.#cache.add([this.#network.nodes.getProperties(toVisit, ['label'])['label']]);
+            this.#queue.push(toVisit);
+            this._cache.add([this._network.nodes.getProperties(toVisit, ['label'])['label']]);
             next = current;
         }
         else
         {
-            next = this.#data.shift();
-            this.#cache.removeFirst();
+            next = this.#queue.shift();
+            this._cache.removeFirst();
         }
+
+        this._network.mark(current, toVisit, frontiers);
 
         return [next, toVisit];
     }
 
-    #createCacheLine(node, distance, prev) 
-    {
-        const first = this.#network.nodes.getProperties(node, ['label'])['label'];
-        const second = distance === Infinity ? '∞' : distance;
-        const third = prev ?? '-';
+}
 
-        return [first, second, third];
+export class Dijkstras extends Search
+{
+    #minDistance;
+    #table;
+    #unvisited;
+    constructor(network, cache, start, end)
+    {
+        super(network, cache, start, end);
+        this.#minDistance = 0;
+        this.#table = {};
+        this.#unvisited = new Set();
+
+        for(const [index, node] of Object.keys(this._adjacencyDict).entries())
+        {
+            const distance = node === start ? 0 : Infinity
+            this.#table[node] = {distance, prev: null, index};
+            this.#unvisited.add(node);
+            this._cache.add(this.#createCacheLine(node, distance, null));
+        }
+
+        this.#unvisited.delete(start);
+        this._cache.setHead(['Node', 'Distance', 'Previous']);
     }
 
-    #nextDijkstras(current, frontiers)
+    _nextStep(current, frontiers)
     {
         for(const frontier of frontiers)
         {
-            const edge = this.#adjacencyDict[current][frontier];
-            const label = this.#network.edges.getProperties(edge, ['label'])['label'];
+            const edge = this._adjacencyDict[current][frontier];
+            const label = this._network.edges.getProperties(edge, ['label'])['label'];
             const weight = isFinite(Number(label)) ? Number(label) : Infinity;
-            const distance = this.#data.minDistance + weight;
-            if(distance < this.#data.table[frontier].distance)
+            const distance = this.#minDistance + weight;
+            if(distance < this.#table[frontier].distance)
             {
-                this.#data.table[frontier].distance = distance;
-                this.#data.table[frontier].prev = current;
-                this.#cache.update(this.#data.table[frontier].index, this.#createCacheLine(frontier, distance, current));
+                this.#table[frontier].distance = distance;
+                this.#table[frontier].prev = current;
+                this._cache.update(this.#table[frontier].index, this.#createCacheLine(frontier, distance, current));
             }
         }
 
         let next;
         let minDistance = Infinity;
 
-        for (const node of frontiers) {
-            if(this.#data.table[node].distance < minDistance) {
-                minDistance = this.#data.table[node].distance;
+        for (const node of this.#unvisited) {
+            if(this.#table[node].distance < minDistance) {
+                minDistance = this.#table[node].distance;
+                if(this.#table[node].prev)
+                    current = this.#table[node].prev;
                 next = node;
             }
         }
 
-        this.#data.minDistance = minDistance;
+        next && this.#unvisited.delete(next);
+        console.log(next);
 
+        this.#minDistance = minDistance;
+
+        this._network.mark(current, next, []);
+        
         return [next, next];
     }
+
+    #createCacheLine(node, distance, prev) 
+    {
+        const first = this._network.nodes.getProperties(node, ['label'])['label'];
+        const second = distance === Infinity ? '∞' : distance;
+        const third = prev ?? '-';
+
+        return [first, second, third];
+    }
 }
+
