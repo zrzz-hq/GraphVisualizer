@@ -3,13 +3,12 @@ import { VisNetwork, Nodes, Edges } from "./network.js";
 import { PropertyPanel } from "./propertyPanel.js"
 import { SearchCache, SearchNetwork, DFS, BFS, Dijkstras} from "./search.js";
 
-// Create nodes and edges
-
 const nodes = new Nodes([]);
 const edges = new Edges([]);
 const visNetwork = new VisNetwork(document.getElementById('graphCanvas'), nodes, edges);
 const propertyPanel = new PropertyPanel();
-// const searchPanel = new bootstrap.Modal('#subNetwork');
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 document.getElementById('mode').addEventListener('change', (e) => {
     visNetwork.setMode(e.target.value);
