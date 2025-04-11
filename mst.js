@@ -63,12 +63,9 @@ export class MSTNetwork extends VisNetwork
     }
 }
 
-export class Kruskal
+class EdgeBased
 {
     #network
-    #nextStep
-
-    #sortedEdges;
     #current;
 
     #nodeClass;
@@ -81,11 +78,6 @@ export class Kruskal
     {
         this.#network = network;
         this.#current = 0;
-        this.#sortedEdges = this.#network.edges.get().sort((a, b) => {
-            const labelA = a.label ?? '';
-            const labelB = b.label ?? '';
-            return labelA.localeCompare(labelB);
-        });
 
         this.#nodeClass = new Map();
         this.#classMap = new Map();
@@ -132,10 +124,13 @@ export class Kruskal
 
     next()
     {
+        if(this.sortedEdges.length === 0)
+            return false;
+
         if(this.#visited.size === this.#network.nodes.length - 1)
             return false;
 
-        const edge = this.#sortedEdges[this.#current]
+        const edge = this.sortedEdges[this.#current]
         const from = edge.from;
         const to = edge.to;
 
@@ -174,5 +169,31 @@ export class Kruskal
         this.#current += 1;
 
         return true;
+    }
+}
+
+export class Kruskal extends EdgeBased
+{
+    constructor(network)
+    {
+        super(network);
+        this.sortedEdges = network.edges.get()
+        .filter(edge => !isNaN(Number(edge.label)))
+        .sort((a, b) => {
+            return Number(a.label) - Number(b.label);
+        });
+    }
+}
+
+export class Greedy extends EdgeBased
+{
+    constructor(network)
+    {
+        super(network);
+        this.sortedEdges = network.edges.get()
+        .filter(edge => !isNaN(Number(edge.label)))
+        .sort((a, b) => {
+            return Number(b.label) - Number(a.label);
+        });
     }
 }

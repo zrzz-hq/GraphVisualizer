@@ -1,4 +1,4 @@
-import { Kruskal, MSTNetwork } from "./mst.js";
+import { Greedy, Kruskal, MSTNetwork } from "./mst.js";
 import { VisNetwork, Nodes, Edges } from "./network.js";
 import { PropertyPanel } from "./propertyPanel.js"
 import { SearchCache, Search, SearchNetwork} from "./search.js";
@@ -105,7 +105,6 @@ document.getElementById('graphCanvas').addEventListener('select', (e) => {
     const selected = nodeSelected || edgeSelected;
 
     document.getElementById('delete').disabled = !selected;
-    document.getElementById('searchGraph').disabled = (e.detail.nodes.length > 2 || e.detail.nodes.length === 0);
 });
 
 document.getElementById('open').addEventListener('click', () => {
@@ -152,26 +151,50 @@ document.getElementById('generate').addEventListener('click', () => {
     visNetwork.generate(type, nNodes, {probability});
 });
 
-const nextSearch = document.getElementById('nextSearch');
-const startSearch = document.getElementById('startSearch');
 
 const onSearchShow = (e) => {
-    const searchNetwork = new SearchNetwork(document.getElementById('searchCanvas'), nodes, edges);
+    const nextSearch = document.getElementById('nextSearch');
+    const startSearch = document.getElementById('startSearch');
+    const searchCanvas = document.getElementById('searchCanvas');
 
-    const searchCache = new SearchCache(document.getElementById('searchCache'));
-    const search = new Search(searchNetwork, searchCache);
+    let started = false;
+    let searchNetwork = new SearchNetwork(searchCanvas, nodes, edges);
+    let searchCache = new SearchCache(document.getElementById('searchCache'));
+    let search = new Search(searchNetwork, searchCache);
+
+    const onSelect = (e) => {
+        nextSearch.disabled = (e.detail.nodes.length > 2 || e.detail.nodes.length === 0);
+    };
 
     const onStartSearch = () => {
-        const searchAlgorithm = document.getElementById("searchAlgorithm");
-        const selectedNodes = visNetwork.getSelectedNodes();
-        search.start(selectedNodes[0], selectedNodes[1], searchAlgorithm.value);
-        nextSearch.disabled = false;
+        if(started)
+        {
+            searchNetwork = new SearchNetwork(searchCanvas, nodes, edges);
+            searchCache = new SearchCache(document.getElementById('searchCache'));
+            search = new Search(searchNetwork, searchCache);
+            started = false;
+        }
+
+        searchCanvas.addEventListener('select', onSelect);
+        searchNetwork.unselectAll();
     };
 
     const onNextSearch = () => {
-        if(!search.next())
+        if(!started)
         {
-            nextSearch.disabled = true;
+            started = true;
+
+            const selectedNodes = searchNetwork.getSelectedNodes();
+            const searchAlgorithm = document.getElementById("searchAlgorithm");
+            search.start(selectedNodes[0], selectedNodes[1], searchAlgorithm.value);
+            searchCanvas.removeEventListener('select', onSelect);
+        }
+        else
+        {
+            if(!search.next())
+            {
+                nextSearch.disabled = true;
+            }
         }
     };
 
@@ -179,12 +202,12 @@ const onSearchShow = (e) => {
     startSearch.addEventListener('click', onStartSearch);
     
     const onSearchHide = (e) => {
-        searchNetwork.destroy();
-        searchCache.destroy();
+        searchNetwork?.destroy();
+        searchCache?.destroy();
 
-        document.getElementById('search').removeEventListener('hidden.bs.model', onSearchHide);
         nextSearch.removeEventListener('click', onNextSearch);
         startSearch.removeEventListener('click', onStartSearch);
+        document.getElementById('search').removeEventListener('hidden.bs.model', onSearchHide);
     }
     
     document.getElementById('search').addEventListener('hidden.bs.modal', onSearchHide);
@@ -194,20 +217,43 @@ const onSearchShow = (e) => {
 document.getElementById('search').addEventListener('shown.bs.modal', onSearchShow);
 
 const onMSTShow = (e) => {
-    const mstNetwork = new MSTNetwork(document.getElementById('mstCanvas'), nodes, edges);
     const nextMST = document.getElementById('nextMST');
+    const startMST = document.getElementById('startMST');
+    const mstCanvas = document.getElementById('mstCanvas');
 
-    const mst = new Kruskal(mstNetwork);
+    let started = false;
+    let mstNetwork = new MSTNetwork(mstCanvas, nodes, edges);
+    let mst;
 
     const onNextMST = () => {
-        mst.next();
+        started = true;
+        if(!mst.next())
+            nextMST.disabled = true;
     }
 
+    const onStartMST = () => {
+        if(started) 
+        {
+            mstNetwork = new MSTNetwork(mstCanvas, nodes, edges);
+            started = false;
+        }
+        mst = document.getElementById('mstAlgorithm').value === 'Greedy' ? new Greedy(mstNetwork) : new Kruskal(mstNetwork);
+        mst.next();
+        nextMST.disabled = false;
+    }
+
+    const onSelect = (e) => {
+
+    };
+
     nextMST.addEventListener('click', onNextMST);
+    startMST.addEventListener('click', onStartMST);
 
     const onMSTHide = () => {
-        mstNetwork.destroy();
+        mstNetwork?.destroy();
         nextMST.removeEventListener('click', onNextMST);
+        nextMST.disabled = true;
+        startMST.removeEventListener('click', onStartMST);
         document.getElementById('MST').removeEventListener('hidden.bs.modal', onMSTHide);
     };
 

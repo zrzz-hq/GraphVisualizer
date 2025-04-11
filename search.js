@@ -5,6 +5,7 @@ export class SearchNetwork extends VisNetwork
     #edgeHistories
     #visited
     #last
+    
     constructor(container, nodes, edges)
     {
         const options = {
@@ -103,11 +104,6 @@ export class SearchCache
 
     destroy() 
     {
-        this.clear();
-    }
-
-    clear()
-    {
         this.#head.replaceChildren();
         this.#body.replaceChildren();
         this.#queue.length = 0;
@@ -204,7 +200,6 @@ export class Search
     {
         this.#current = start
         this.#end = end;
-        this.#cache.clear();
 
         switch(algorithm)
         {
@@ -222,7 +217,7 @@ export class Search
                 this.#data = {minDistance: 0, table: {}};
                 for(const [index, node] of Object.keys(this.#adjacencyDict).entries())
                 {
-                    const distance = index === 0 ? 0 : Infinity
+                    const distance = node === start ? 0 : Infinity
                     this.#data.table[node] = {distance, prev: null, index};
                     this.#cache.add(this.#createCacheLine(node, distance, null));
                 }
@@ -254,7 +249,7 @@ export class Search
         this.#current = next;
         return true;
     }
-
+    
     #nextDFS(current, frontiers)
     {
         let next;
