@@ -173,24 +173,24 @@ export class VisNetwork extends Network
         {
             case 'drag':
                 this.#options.interaction.selectable =true;
-                this.setOptions(this.#options);
+                // this.setOptions(this.#options);
                 this.disableEditMode();
                 break;
             case 'addDEdge':
                 this.#directed = true;
                 this.#options.interaction.selectable =false;
-                this.setOptions(this.#options);
+                // this.setOptions(this.#options);
                 this.addEdgeMode();
                 break;
             case 'addEdge':
                 this.#directed = false;
                 this.#options.interaction.selectable =false;
-                this.setOptions(this.#options);
+                // this.setOptions(this.#options);
                 this.addEdgeMode();
                 break;
             case 'addNode':
                 this.#options.interaction.selectable =false;
-                this.setOptions(this.#options);
+                // this.setOptions(this.#options);
                 this.addNodeMode();
                 break;
             default:
@@ -374,6 +374,7 @@ export class VisNetwork extends Network
         selectedNodes.length > 0 && this.#deselectNodeEvent([], selectedNodes);
         selectedEdges.length > 0 && this.#deselectEdgeEvent([], selectedEdges);
         (selectedNodes.length > 0 || selectedEdges.length > 0) && this.#selectEvent([], []);
+        this.#setMode();
     }
 
     unselectAll()

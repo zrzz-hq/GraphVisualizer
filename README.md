@@ -16,8 +16,6 @@ Graph Visualizer is a web application powered by vis.js that allows users to dra
 ### Load Graph 
 Loads a graph from a `.dot` file, supporting only label properties for nodes and edges. Other styling attributes are not currently supported.
 
-Click the 
-
 ### Save Graph
 Saves the current graph to a .dot file, including only label properties for nodes and edges. Styling attributes are not included in the exported file.
 
@@ -30,6 +28,7 @@ You can switch between four edit modes:
 <p align="center">
     <img src="./images/addEdge.gif" alt="Add Edge" width="20%">
 </p>
+
 - **Add Directed Edges**: Same as "Add Edges", but the edge will have a direction (arrow) from the start node to the end node.
 
 ### Properties
