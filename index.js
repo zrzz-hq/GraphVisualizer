@@ -1,3 +1,4 @@
+import { Kruskal, MSTNetwork } from "./mst.js";
 import { VisNetwork, Nodes, Edges } from "./network.js";
 import { PropertyPanel } from "./propertyPanel.js"
 import { SearchCache, Search, SearchNetwork} from "./search.js";
@@ -151,12 +152,11 @@ document.getElementById('generate').addEventListener('click', () => {
     visNetwork.generate(type, nNodes, {probability});
 });
 
-const subCanvas = document.getElementById('searchCanvas');
 const nextSearch = document.getElementById('nextSearch');
 const startSearch = document.getElementById('startSearch');
 
 const onSearchShow = (e) => {
-    const searchNetwork = new SearchNetwork(subCanvas, nodes, edges);
+    const searchNetwork = new SearchNetwork(document.getElementById('searchCanvas'), nodes, edges);
 
     const searchCache = new SearchCache(document.getElementById('searchCache'));
     const search = new Search(searchNetwork, searchCache);
@@ -192,4 +192,27 @@ const onSearchShow = (e) => {
 
 
 document.getElementById('search').addEventListener('shown.bs.modal', onSearchShow);
+
+const onMSTShow = (e) => {
+    const mstNetwork = new MSTNetwork(document.getElementById('mstCanvas'), nodes, edges);
+    const nextMST = document.getElementById('nextMST');
+
+    const mst = new Kruskal(mstNetwork);
+
+    const onNextMST = () => {
+        mst.next();
+    }
+
+    nextMST.addEventListener('click', onNextMST);
+
+    const onMSTHide = () => {
+        mstNetwork.destroy();
+        nextMST.removeEventListener('click', onNextMST);
+        document.getElementById('MST').removeEventListener('hidden.bs.modal', onMSTHide);
+    };
+
+    document.getElementById('MST').addEventListener('hidden.bs.modal', onMSTHide);
+};
+
+document.getElementById('MST').addEventListener('shown.bs.modal', onMSTShow);
 

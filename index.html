@@ -77,6 +77,10 @@
           <button id="searchGraph" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#search" disabled>
             S
           </button>
+
+          <button id="createMST" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#MST">
+            M
+          </button>
         </div>
 
       </div>
@@ -277,7 +281,7 @@
     </div>
   </div>
 
-  <!-- <div class="modal fade" id="creatMST" tabindex="-1" aria-labelledby="search">
+  <div class="modal fade" id="MST" tabindex="-1" aria-labelledby="MST">
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
         <div class="modal-header">
@@ -285,20 +289,14 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body d-flex align-items-stretch">
-          <div id="subNetwork" class="border flex-grow me-3"></div>
-          <div>
-            <table id="searchCache" class="table table-bordered table-sm text-center">
-              <thead></thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <div id="mstCanvas" class="border flex-grow-1"></div>
         </div>
         <div class="modal-footer">
-          <button id="nextSearch" type="button" class="btn btn-primary">Next</button>
+          <button id="nextMST" type="button" class="btn btn-primary">Next</button>
         </div>
       </div>
     </div>
-  </div> -->
+  </div>
 
 </body>
 </html>

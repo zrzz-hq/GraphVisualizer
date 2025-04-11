@@ -206,18 +206,13 @@ export class VisNetwork extends Network
 
     load(dotString)
     {
-        // const parsedData = parseDOTNetwork(dotString);
-
-        const graph = graphlibDot.read(dotString); // 👈 Parse DOT
-
-        console.log(graph.nodes());
-        console.log(graph.edges());
+        const graph = graphlibDot.read(dotString);
 
         const nodes = graph.nodes().map(nodeId => {
             const props = graph.node(nodeId) || {};
             return {
               id: nodeId,
-              label: props.label || nodeId // fallback label
+              label: props.label || nodeId
             };
         });
 
