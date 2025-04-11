@@ -221,8 +221,8 @@ const onMSTShow = (e) => {
     const startMST = document.getElementById('startMST');
     const mstCanvas = document.getElementById('mstCanvas');
 
-    let started = false;
-    let mstNetwork = new MSTNetwork(mstCanvas, nodes, edges);
+    let started = true;
+    let mstNetwork;
     let mst;
 
     const onNextMST = () => {
